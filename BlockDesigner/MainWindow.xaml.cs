@@ -35,14 +35,19 @@ namespace BlockDesigner
 
         #region Events
 
-        private void ButtonCompileCode_Click(object sender, RoutedEventArgs e)
-        {
-            CompileUserCode();
-        }
-
         private void ButtonLoadCodeFromFile_Click(object sender, RoutedEventArgs e)
         {
             LoadCodeFromFile();
+        }
+
+        private void ButtonSaveCodeToFile_Click(object sender, RoutedEventArgs e)
+        {
+            SaveCodeToFile();
+        }
+
+        private void ButtonCompileCode_Click(object sender, RoutedEventArgs e)
+        {
+            CompileUserCode();
         }
 
         private void ButtonExportXaml_Click(object sender, RoutedEventArgs e)
@@ -91,6 +96,41 @@ namespace BlockDesigner
 
         #endregion
 
+        #region Save Code
+
+        private void SaveCodeToFile()
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog()
+            {
+                DefaultExt = "txt",
+                Filter = "Block Files (*.txt;*.block)|*.txt;*.block|TXT Files (*.txt)|*.txt|Block Files (*.block)|*.block|All Files (*.*)|*.*",
+                FilterIndex = 1,
+                FileName = "script1"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+
+                SaveCodeToFile(dlg.FileName);
+
+                sw.Stop();
+                System.Diagnostics.Debug.Print("Saved code in {0}ms", sw.Elapsed.TotalMilliseconds);
+            }
+        }
+
+        private void SaveCodeToFile(string fileName)
+        {
+            string codeText = TextCode.Text;
+
+            using (var stream = new System.IO.StreamWriter(fileName))
+            {
+                stream.Write(codeText);
+            }
+        }
+
+        #endregion
+
         #region Compile Code
 
         private void CompileUserCode()
@@ -115,12 +155,20 @@ namespace BlockDesigner
 
         private void CompileUserCode(List<string[]> lines)
         {
-            double offset = 30.0;
+            double offset = 0.0;
 
             var linesStringBuilder = new StringBuilder();
             var pinEllipses = new List<Ellipse>();
             var textBlocks = new List<TextBlock>();
             var grids = new Dictionary<string, Grid>();
+
+            var canvas = new Canvas()
+            {
+                Background = Brushes.Transparent,
+                ClipToBounds = false
+            };
+
+            string block_name = "BlockName";
 
             foreach (var l in lines)
             {
@@ -128,6 +176,30 @@ namespace BlockDesigner
 
                 switch (command)
                 {
+                    #region Block
+
+                    // Block definition should at the beginning of script.
+                    // Format:
+                    // block <name> <width> <height>
+                    case "block":
+                        {
+                            if (l.Length != 4)
+                                break;
+
+                            block_name = l[1];
+
+                            double width, height;
+                            if (double.TryParse(l[2], out width) &&
+                                double.TryParse(l[3], out height))
+                            {
+                                canvas.Width = width;
+                                canvas.Height = height;
+                            }
+                        }
+                        break;
+
+                    #endregion
+
                     #region Line
 
                     // line x1 y1 x2 y2
@@ -166,13 +238,17 @@ namespace BlockDesigner
 
                                 var ellipse = new Ellipse()
                                 {
+                                    /*
                                     Stroke = Brushes.Red,
                                     Fill = Brushes.Red,
                                     StrokeThickness = 1.0,
                                     Width = 8,
                                     Height = 8,
                                     Margin = new Thickness(-4.0, -4.0, 0.0, 0.0)
+                                    */
                                 };
+
+                                ellipse.SetResourceReference(StyleProperty, "BlockEllipseKey");
 
                                 ellipse.Name = name;
 
@@ -393,7 +469,7 @@ namespace BlockDesigner
             }
 
             // reset canvas
-            CanvasBlock.Children.Clear();
+            canvas.Children.Clear();
 
             // lines
             var path = new Path() { StrokeThickness = 1.0, Stroke = Brushes.Red };
@@ -403,18 +479,29 @@ namespace BlockDesigner
             Canvas.SetTop(path, offset);
             string pathData = linesStringBuilder.ToString();
             path.Data = Geometry.Parse(pathData);
-            CanvasBlock.Children.Add(path);
+            canvas.Children.Add(path);
 
             // pins
             foreach (var ellipse in pinEllipses)
-                CanvasBlock.Children.Add(ellipse);
+                canvas.Children.Add(ellipse);
 
             // grids
             foreach (var grid in grids)
-                CanvasBlock.Children.Add(grid.Value);
+                canvas.Children.Add(grid.Value);
 
             // generate Xaml
-            TextXaml.Text = GenerateResourceDictionary(CanvasBlock as object);
+
+            var objects = new Dictionary<string, object>();
+
+            objects.Add(block_name + "ControlTemplateKey", canvas);
+
+            TextXaml.Text = FormatXml(GetResourceDictionary(objects));
+
+
+            // add block to designer canvas
+            Canvas.SetLeft(canvas, 30);
+            Canvas.SetTop(canvas, 30);
+            CanvasDesignArea.Children.Add(canvas);
         }
 
         #endregion
@@ -460,61 +547,93 @@ namespace BlockDesigner
                 Indent = true,
                 IndentChars = indent,
                 ConformanceLevel = ConformanceLevel.Fragment,
-                OmitXmlDeclaration = true,
+                OmitXmlDeclaration = true
             });
-            var mgr = new XamlDesignerSerializationManager(writer);
-            mgr.XamlWriterMode = XamlWriterMode.Expression;
+
+            var mgr = new XamlDesignerSerializationManager(writer)
+            {
+                XamlWriterMode = XamlWriterMode.Expression
+            };
+
             System.Windows.Markup.XamlWriter.Save(obj, mgr);
 
             return sb.ToString();
         }
 
-        private ControlTemplate GetControlTemplate(object obj)
+        private string GetControlTemplate(object obj, string key)
         {
             string objXaml = GetXaml(obj, "    ");
 
-            string templatetagOpen = "<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>\n";
-            string templatetagClose = "</ControlTemplate>";
+            string openTag = string.Concat("<ControlTemplate x:Key=\"", key, "\" xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">\n");
+            string closeTag = "</ControlTemplate>";
 
-            ControlTemplate ct = (ControlTemplate)XamlReader.Parse(string.Concat(templatetagOpen, objXaml, templatetagClose));
-
-            return ct;
+            return string.Concat(openTag, objXaml, closeTag); ;
         }
 
-        private string GenerateResourceDictionary(object obj)
+        private string GetBlockEllipseStyle()
         {
-            var rd = new ResourceDictionary();
+            return
+                "<Style x:Key=\"BlockEllipseKey\" TargetType=\"Ellipse\" xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">" +
+                    "<Setter Property=\"Stroke\" Value=\"Red\"/>" +
+                    "<Setter Property=\"Fill\" Value=\"Red\"/>" +
+                    "<Setter Property=\"StrokeThickness\" Value=\"1.0\"/>" +
+                    "<Setter Property=\"Width\" Value=\"8.0\"/>" +
+                    "<Setter Property=\"Height\" Value=\"8.0\"/>" +
+                    "<Setter Property=\"Margin\" Value=\"-4,-4,0,0\"/>" +
+                    "<Setter Property=\"SnapsToDevicePixels\" Value=\"True\"/>" +
+                "</Style>";
+        }
 
-            /*
-            string styleText = "<Style TargetType='Ellipse' xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>\n" +
-                                    "<Setter Property='Stroke' Value='Red'/>\n" +
-                                    "<Setter Property='Fill' Value='Red'/>\n" +
-                                    "<Setter Property='StrokeThickness' Value='1.0'/>\n" +
-                                    "<Setter Property='Width' Value='8.0'/>\n" +
-                                    "<Setter Property='Height' Value='8.0'/>\n" +
-                                    "<Setter Property='Margin' Value='-4,-4,0,0'/>\n" +
-                               "</Style>";
-            Style ellipseStyle = (Style)XamlReader.Parse(styleText);
+        private string GetResourceDictionary(Dictionary<string, object> objects)
+        {
+            var sb = new StringBuilder();
+
+            string openTag = "<ResourceDictionary xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\">";
+            string closeTag = "</ResourceDictionary>";
+
+            // add resource dictionary open tag
+            sb.AppendLine(openTag);
+
+            // create control styles
+
+            string ellipseStyleText = GetBlockEllipseStyle();
+            sb.AppendLine(ellipseStyleText);
+
+            // create control templates
+            foreach(var item in objects)
+            {
+                 string objText = GetControlTemplate(item.Value, item.Key);
+
+                sb.AppendLine(objText);
+            }
+
+            // add resource dictionary close tag
+            sb.AppendLine(closeTag);
+
+            // return resource dictionary xaml string
+            return sb.ToString();
+        }
+
+        public static string FormatXml(string xml)
+        {
+            XmlDocument doc = new XmlDocument();
             
+            doc.LoadXml(xml);
 
-            //Style ellipseStyle = new System.Windows.Style(typeof(Ellipse));
+            StringBuilder sb = new StringBuilder();
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Indent = true;
+            settings.IndentChars = "    ";
+            settings.NewLineChars = "\r\n";
+            settings.NewLineHandling = NewLineHandling.Replace;
+            settings.OmitXmlDeclaration = true;
 
-            //ellipseStyle.Setters.Add(new Setter(Ellipse.StrokeProperty, Brushes.Red));
-            //ellipseStyle.Setters.Add(new Setter(Ellipse.FillProperty, Brushes.Red));
-            //ellipseStyle.Setters.Add(new Setter(Ellipse.StrokeThicknessProperty, 1.0));
-            //ellipseStyle.Setters.Add(new Setter(Ellipse.WidthProperty, 8.0));
-            //ellipseStyle.Setters.Add(new Setter(Ellipse.HeightProperty, 8.0));
-            //ellipseStyle.Setters.Add(new Setter(Ellipse.MarginProperty, new Thickness(-4.0, -4.0, 0.0, 0.0)));
+            using (XmlWriter writer = XmlWriter.Create(sb, settings))
+            {
+                doc.Save(writer);
+            }
 
-            rd.Add("BlockEllipseKey", ellipseStyle);
-            */
-
-            ControlTemplate ct = GetControlTemplate(obj);
-            rd.Add("BlockNameControlTemplateKey", ct);
-     
-            string rdXaml = GetXaml(rd, "    ");
-
-            return rdXaml;
+            return sb.ToString();
         }
 
         #endregion
