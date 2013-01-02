@@ -1,6 +1,8 @@
 //
 // begin: Block.OneWayMotor
 //
+block OneWayMotor 480 120
+//
 // horizontal lines
 //
 line 0 0 480 0
