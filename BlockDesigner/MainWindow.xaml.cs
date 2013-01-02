@@ -45,9 +45,14 @@ namespace BlockDesigner
             LoadCodeFromFile();
         }
 
+        private void ButtonExportXaml_Click(object sender, RoutedEventArgs e)
+        {
+            ExportXamlToFile();
+        }
+
         #endregion
 
-        #region Methods
+        #region Load Code
 
         private void LoadCodeFromFile()
         {
@@ -84,6 +89,10 @@ namespace BlockDesigner
             TextCode.Text = sb.ToString();
         }
 
+        #endregion
+
+        #region Compile Code
+
         private void CompileUserCode()
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -106,7 +115,7 @@ namespace BlockDesigner
 
         private void CompileUserCode(List<string[]> lines)
         {
-            double offset = 10.0;
+            double offset = 30.0;
 
             var linesStringBuilder = new StringBuilder();
             var pinEllipses = new List<Ellipse>();
@@ -404,28 +413,108 @@ namespace BlockDesigner
             foreach (var grid in grids)
                 CanvasBlock.Children.Add(grid.Value);
 
-
-
-
             // generate Xaml
+            TextXaml.Text = GenerateResourceDictionary(CanvasBlock as object);
+        }
 
+        #endregion
+
+        #region Export Xaml
+
+        private void ExportXamlToFile()
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog()
+            {
+                DefaultExt = "xaml",
+                Filter = "Xaml Files (*.xaml)|*.xaml;|All Files (*.*)|*.*",
+                FilterIndex = 1,
+                FileName = "Dictionary1"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+
+                ExportXamlToFile(dlg.FileName);
+
+                sw.Stop();
+                System.Diagnostics.Debug.Print("Exported xaml in {0}ms", sw.Elapsed.TotalMilliseconds);
+            }
+        }
+
+        private void ExportXamlToFile(string fileName)
+        {
+            string xamlText = TextXaml.Text;
+
+            using (var stream = new System.IO.StreamWriter(fileName))
+            {
+                stream.Write(xamlText);
+            }
+        }
+
+        private string GetXaml(object obj, string indent)
+        {
             var sb = new StringBuilder();
             var writer = System.Xml.XmlWriter.Create(sb, new System.Xml.XmlWriterSettings
             {
                 Indent = true,
+                IndentChars = indent,
                 ConformanceLevel = ConformanceLevel.Fragment,
                 OmitXmlDeclaration = true,
             });
             var mgr = new XamlDesignerSerializationManager(writer);
             mgr.XamlWriterMode = XamlWriterMode.Expression;
-            System.Windows.Markup.XamlWriter.Save(CanvasBlock, mgr);
+            System.Windows.Markup.XamlWriter.Save(obj, mgr);
 
-            TextXaml.Text = sb.ToString();
+            return sb.ToString();
+        }
 
+        private ControlTemplate GetControlTemplate(object obj)
+        {
+            string objXaml = GetXaml(obj, "    ");
 
+            string templatetagOpen = "<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>\n";
+            string templatetagClose = "</ControlTemplate>";
 
+            ControlTemplate ct = (ControlTemplate)XamlReader.Parse(string.Concat(templatetagOpen, objXaml, templatetagClose));
 
+            return ct;
+        }
 
+        private string GenerateResourceDictionary(object obj)
+        {
+            var rd = new ResourceDictionary();
+
+            /*
+            string styleText = "<Style TargetType='Ellipse' xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>\n" +
+                                    "<Setter Property='Stroke' Value='Red'/>\n" +
+                                    "<Setter Property='Fill' Value='Red'/>\n" +
+                                    "<Setter Property='StrokeThickness' Value='1.0'/>\n" +
+                                    "<Setter Property='Width' Value='8.0'/>\n" +
+                                    "<Setter Property='Height' Value='8.0'/>\n" +
+                                    "<Setter Property='Margin' Value='-4,-4,0,0'/>\n" +
+                               "</Style>";
+            Style ellipseStyle = (Style)XamlReader.Parse(styleText);
+            
+
+            //Style ellipseStyle = new System.Windows.Style(typeof(Ellipse));
+
+            //ellipseStyle.Setters.Add(new Setter(Ellipse.StrokeProperty, Brushes.Red));
+            //ellipseStyle.Setters.Add(new Setter(Ellipse.FillProperty, Brushes.Red));
+            //ellipseStyle.Setters.Add(new Setter(Ellipse.StrokeThicknessProperty, 1.0));
+            //ellipseStyle.Setters.Add(new Setter(Ellipse.WidthProperty, 8.0));
+            //ellipseStyle.Setters.Add(new Setter(Ellipse.HeightProperty, 8.0));
+            //ellipseStyle.Setters.Add(new Setter(Ellipse.MarginProperty, new Thickness(-4.0, -4.0, 0.0, 0.0)));
+
+            rd.Add("BlockEllipseKey", ellipseStyle);
+            */
+
+            ControlTemplate ct = GetControlTemplate(obj);
+            rd.Add("BlockNameControlTemplateKey", ct);
+     
+            string rdXaml = GetXaml(rd, "    ");
+
+            return rdXaml;
         }
 
         #endregion
