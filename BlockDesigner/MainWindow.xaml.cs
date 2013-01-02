@@ -10,6 +10,7 @@ namespace BlockDesigner
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Windows.Controls.Primitives;
     using System.Windows.Data;
     using System.Windows.Documents;
     using System.Windows.Input;
@@ -497,11 +498,30 @@ namespace BlockDesigner
 
             TextXaml.Text = FormatXml(GetResourceDictionary(objects));
 
-
             // add block to designer canvas
-            Canvas.SetLeft(canvas, 30);
-            Canvas.SetTop(canvas, 30);
-            CanvasDesignArea.Children.Add(canvas);
+
+            var ctText = GetControlTemplate(canvas, block_name + "ControlTemplateKey");
+            var ct = (ControlTemplate)XamlReader.Parse(ctText);
+
+            var thumb = new Thumb()
+            {
+                Template = ct
+            };
+
+            thumb.DragDelta += (sender, e) =>
+            {
+                var t = sender as Thumb;
+                double x = Canvas.GetLeft(t) + e.HorizontalChange;
+                double y = Canvas.GetTop(t) + e.VerticalChange;
+                Canvas.SetLeft(t, x);
+                Canvas.SetTop(t, y);
+            };
+
+            Canvas.SetLeft(thumb, 30);
+            Canvas.SetTop(thumb, 30);
+
+            CanvasDesignArea.Children.Add(thumb);
+
         }
 
         #endregion
@@ -564,7 +584,11 @@ namespace BlockDesigner
         {
             string objXaml = GetXaml(obj, "    ");
 
-            string openTag = string.Concat("<ControlTemplate x:Key=\"", key, "\" xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">\n");
+            string openTag = string.Concat("<ControlTemplate x:Key=\"", 
+                                           key, 
+                                           //"\" xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">\n");
+                                           "\" xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\">\n");
+                      
             string closeTag = "</ControlTemplate>";
 
             return string.Concat(openTag, objXaml, closeTag); ;
