@@ -1,0 +1,82 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ControlTemplate x:Key="BlockNameControlTemplateKey">
+        <Canvas Background="#FFD3D3D3" Name="CanvasBlock" Margin="2,2,2,2" Grid.Column="0" Grid.Row="1">
+            <Path Data="M0,0L480,0 M0,15L480,15 M0,30L480,30 M0,45L30,45 M450,45L480,45 M0,60L30,60 M450,60L480,60 M0,75L30,75 M450,75L480,75 M0,90L480,90 M0,105L480,105 M0,120L480,120 M0,0L0,120 M30,0L30,120 M60,0L60,30 M60,90L60,120 M90,0L90,30 M90,90L90,120 M120,0L120,30 M120,90L120,120 M150,0L150,120 M180,0L180,30 M180,90L180,120 M210,0L210,30 M210,90L210,120 M240,0L240,30 M240,90L240,120 M270,0L270,30 M270,90L270,120 M300,0L300,30 M300,90L300,120 M330,0L330,120 M360,0L360,30 M360,90L360,120 M390,0L390,30 M390,90L390,120 M420,0L420,30 M420,90L420,120 M450,0L450,120 M480,0L480,120" Stroke="#FFFF0000" StrokeThickness="1" SnapsToDevicePixels="False" Canvas.Left="30" Canvas.Top="30" RenderOptions.EdgeMode="Aliased" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="SA" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="SA" SnapsToDevicePixels="True" Canvas.Left="75" Canvas.Top="30" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="FA" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="FA" SnapsToDevicePixels="True" Canvas.Left="105" Canvas.Top="30" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="HA" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="HA" SnapsToDevicePixels="True" Canvas.Left="135" Canvas.Top="30" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="AA" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="AA" SnapsToDevicePixels="True" Canvas.Left="165" Canvas.Top="30" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="ST" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="ST" SnapsToDevicePixels="True" Canvas.Left="255" Canvas.Top="30" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="AR" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="AR" SnapsToDevicePixels="True" Canvas.Left="375" Canvas.Top="30" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="HE" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="HE" SnapsToDevicePixels="True" Canvas.Left="405" Canvas.Top="30" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="FE" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="FE" SnapsToDevicePixels="True" Canvas.Left="435" Canvas.Top="30" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="SE" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="SE" SnapsToDevicePixels="True" Canvas.Left="465" Canvas.Top="30" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="REA" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="REA" SnapsToDevicePixels="True" Canvas.Left="105" Canvas.Top="150" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="BS" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="BS" SnapsToDevicePixels="True" Canvas.Left="135" Canvas.Top="150" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="RST" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="RST" SnapsToDevicePixels="True" Canvas.Left="255" Canvas.Top="150" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="REE" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="REE" SnapsToDevicePixels="True" Canvas.Left="405" Canvas.Top="150" />
+            <Ellipse Fill="#FFFF0000" Stroke="#FFFF0000" StrokeThickness="1" Name="BE" Width="8" Height="8" Margin="-4,-4,0,0" ToolTip="BE" SnapsToDevicePixels="True" Canvas.Left="435" Canvas.Top="150" />
+            <Grid Background="#00FFFFFF" Name="g1" Width="480" Height="120" Canvas.Left="30" Canvas.Top="30">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="30" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="15" />
+                    <RowDefinition Height="15" />
+                    <RowDefinition Height="15" />
+                    <RowDefinition Height="15" />
+                    <RowDefinition Height="15" />
+                    <RowDefinition Height="15" />
+                    <RowDefinition Height="15" />
+                    <RowDefinition Height="15" />
+                </Grid.RowDefinitions>
+                <TextBlock Text="SA" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="YB32" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="FA" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="YB34" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="HA" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="3" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="YB12" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="3" Grid.Row="1" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="AA" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="4" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="YB22" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="4" Grid.Row="1" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="ST" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="7" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="YB44" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="7" Grid.Row="1" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="AE" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="11" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="YB21" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="11" Grid.Row="1" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="HE" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="12" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="YB11" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="12" Grid.Row="1" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="FE" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="13" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="YB33" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="13" Grid.Row="1" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="SE" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="14" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="YB31" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="14" Grid.Row="1" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="OFF" FontFamily="Arial" FontWeight="Bold" FontSize="14" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="4" Grid.RowSpan="2" />
+                <TextBlock Text="MOTOR" FontFamily="Arial" FontWeight="Bold" FontSize="14" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="5" Grid.Row="2" Grid.ColumnSpan="6" Grid.RowSpan="2" />
+                <TextBlock Text="ON" FontFamily="Arial" FontWeight="Bold" FontSize="14" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="11" Grid.Row="2" Grid.ColumnSpan="4" Grid.RowSpan="2" />
+                <TextBlock Text="XB02" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="2" Grid.Row="6" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="REA" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="2" Grid.Row="7" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="XB92" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="3" Grid.Row="6" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="BA" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="3" Grid.Row="7" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="XB46" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="7" Grid.Row="6" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="RST" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="7" Grid.Row="7" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="XB01" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="12" Grid.Row="6" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="REE" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="12" Grid.Row="7" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="XB91" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="13" Grid.Row="6" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+                <TextBlock Text="BE" FontFamily="Arial" FontWeight="Normal" FontSize="9" Foreground="#FFFF0000" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="False" RenderOptions.EdgeMode="Aliased" Grid.Column="13" Grid.Row="7" Grid.ColumnSpan="1" Grid.RowSpan="1" />
+            </Grid>
+        </Canvas>
+    </ControlTemplate>
+</ResourceDictionary>
