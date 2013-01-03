@@ -75,25 +75,13 @@ namespace BlockDesigner
             {
                 var sw = System.Diagnostics.Stopwatch.StartNew();
 
-                LoadCodeFromFile(dlg.FileName);
+                var textCode = Parser.LoadText(dlg.FileName);
+
+                TextCode.Text = textCode;
 
                 sw.Stop();
                 System.Diagnostics.Debug.Print("Loaded code in {0}ms", sw.Elapsed.TotalMilliseconds);
             }
-        }
-
-        private void LoadCodeFromFile(string fileName)
-        {
-            var sb = new StringBuilder();
-
-            using (var stream = new System.IO.StreamReader(fileName))
-            {
-                string line;
-                while ((line = stream.ReadLine()) != null)
-                    sb.AppendLine(line);
-            }
-
-            TextCode.Text = sb.ToString();
         }
 
         #endregion
@@ -114,20 +102,11 @@ namespace BlockDesigner
             {
                 var sw = System.Diagnostics.Stopwatch.StartNew();
 
-                SaveCodeToFile(dlg.FileName);
+                string codeText = TextCode.Text;
+                Parser.SaveText(dlg.FileName, codeText);
 
                 sw.Stop();
                 System.Diagnostics.Debug.Print("Saved code in {0}ms", sw.Elapsed.TotalMilliseconds);
-            }
-        }
-
-        private void SaveCodeToFile(string fileName)
-        {
-            string codeText = TextCode.Text;
-
-            using (var stream = new System.IO.StreamWriter(fileName))
-            {
-                stream.Write(codeText);
             }
         }
 
@@ -141,11 +120,11 @@ namespace BlockDesigner
 
             var codeText = TextCode.Text;
 
-            var lines = Compiler.GetLines(codeText);
+            var lines = Parser.SplitText(codeText);
 
-            var commands = Parser.GetCommands(lines);
+            var commands = Parser.ParseLines(lines);
 
-            CompileUserCode(commands);
+            Compile(commands);
 
             sw.Stop();
             System.Diagnostics.Debug.Print("Compiled code in {0}ms", sw.Elapsed.TotalMilliseconds);
@@ -155,7 +134,7 @@ namespace BlockDesigner
             #endif
         }
 
-        private void CompileUserCode(IEnumerable<dynamic> commands)
+        private void Compile(IEnumerable<dynamic> commands)
         {
             double offset = 0.0;
 
@@ -181,7 +160,15 @@ namespace BlockDesigner
                     // execute <path>
                     case "execute":
                         {
-                            
+                            string fileName = command.Path;
+                            if (System.IO.File.Exists(fileName))
+                            {
+                                var lines = Parser.LoadLines(fileName);
+
+                                var cmds = Parser.ParseLines(lines);
+
+                                Compile(cmds);
+                            }
                         }
                         break;
 

@@ -16,7 +16,63 @@ namespace BlockDesigner
 
     public class Parser
     {
-        public static IEnumerable<dynamic> GetCommands(IEnumerable<string[]> lines)
+        public static string LoadText(string fileName)
+        {
+            var sb = new StringBuilder();
+
+            using (var stream = new System.IO.StreamReader(fileName))
+            {
+                string line;
+                while ((line = stream.ReadLine()) != null)
+                {
+                    sb.AppendLine(line);
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        public static void SaveText(string fileName, string text)
+        {
+            using (var stream = new System.IO.StreamWriter(fileName))
+            {
+                stream.Write(text);
+            }
+        }
+
+        public static List<string[]> LoadLines(string fileName)
+        {
+            var lines = new List<string[]>();
+
+            using (var stream = new System.IO.StreamReader(fileName))
+            {
+                string line;
+                while ((line = stream.ReadLine()) != null)
+                {
+                    lines.Add(line.Split(' '));
+                }
+            }
+
+            return lines;
+        }
+
+        public static IEnumerable<string[]> SplitText(string text)
+        {
+            var lines = new List<string[]>();
+
+            using (System.IO.StringReader reader = new System.IO.StringReader(text))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    lines.Add(line.Split(' '));
+                }
+            }
+
+            return lines;
+        }
+
+        public static IEnumerable<dynamic> ParseLines(IEnumerable<string[]> lines)
         {
             var commands = new List<dynamic>();
             
@@ -27,11 +83,14 @@ namespace BlockDesigner
                     // execute <path>
                     case "execute":
                         {
-                            dynamic command = new ExpandoObject();
-                            command.Version = "1.0";
-                            command.Command = l[0];
-                            command.Path = l[1];
-                            commands.Add(command);
+                            if (l.Length == 2)
+                            {
+                                dynamic command = new ExpandoObject();
+                                command.Version = "1.0";
+                                command.Command = l[0];
+                                command.Path = l[1];
+                                commands.Add(command);
+                            }
                         }
                         break;
                     // block <name> <width> <height>
