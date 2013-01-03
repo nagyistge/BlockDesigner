@@ -12,6 +12,8 @@ namespace BlockDesigner
 
     #endregion
 
+    #region Parser
+
     public class Parser
     {
         public static IEnumerable<dynamic> GetCommands(IEnumerable<string[]> lines)
@@ -143,4 +145,6 @@ namespace BlockDesigner
             return commands;
         }
     }
+
+    #endregion
 }
