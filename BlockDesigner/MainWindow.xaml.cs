@@ -5,6 +5,7 @@ namespace BlockDesigner
 
     using System;
     using System.Collections.Generic;
+    using System.Dynamic;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -148,13 +149,18 @@ namespace BlockDesigner
                     lines.Add(line.Split(' '));
             }
 
-            CompileUserCode(lines);
+            var commands = Parser.GetCommands(lines);
+            CompileUserCode(commands);
 
             sw.Stop();
             System.Diagnostics.Debug.Print("Compiled code in {0}ms", sw.Elapsed.TotalMilliseconds);
+
+            #if !DEBUG
+            MessageBox.Show("Compiled code in " + sw.Elapsed.TotalMilliseconds.ToString() + "ms");
+            #endif
         }
 
-        private void CompileUserCode(List<string[]> lines)
+        private void CompileUserCode(IEnumerable<dynamic> commands)
         {
             double offset = 0.0;
 
@@ -171,27 +177,20 @@ namespace BlockDesigner
 
             string block_name = "BlockName";
 
-            foreach (var l in lines)
+            foreach (dynamic command in commands)
             {
-                var command = l[0];
-
-                switch (command)
+                switch (command.Command as string)
                 {
                     #region Block
 
-                    // Block definition should at the beginning of script.
-                    // Format:
                     // block <name> <width> <height>
                     case "block":
                         {
-                            if (l.Length != 4)
-                                break;
+                            block_name = command.Name;
 
-                            block_name = l[1];
-
-                            double width, height;
-                            if (double.TryParse(l[2], out width) &&
-                                double.TryParse(l[3], out height))
+                            double width = 0.0, height = 0.0;
+                            if (double.TryParse(command.Width, out width) &&
+                                double.TryParse(command.Height, out height))
                             {
                                 canvas.Width = width;
                                 canvas.Height = height;
@@ -203,17 +202,14 @@ namespace BlockDesigner
 
                     #region Line
 
-                    // line x1 y1 x2 y2
+                    // line <x1> <y1> <x2> <y2>
                     case "line":
                         {
-                            if (l.Length != 5)
-                                break;
-
-                            double x1, y1, x2, y2;
-                            if (double.TryParse(l[1], out x1) &&
-                                double.TryParse(l[2], out y1) &&
-                                double.TryParse(l[3], out x2) &&
-                                double.TryParse(l[4], out y2))
+                            double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
+                            if (double.TryParse(command.X1, out x1) &&
+                                double.TryParse(command.Y1, out y1) &&
+                                double.TryParse(command.X2, out x2) &&
+                                double.TryParse(command.Y2, out y2))
                             {
                                 linesStringBuilder.AppendFormat("M{0},{1}", x1, y1);
                                 linesStringBuilder.AppendFormat("L{0},{1}\n", x2, y2);
@@ -225,34 +221,19 @@ namespace BlockDesigner
 
                     #region Pin
 
-                    // pin name x y
+                    // pin <name> <x> <y>
                     case "pin":
                         {
-                            if (l.Length != 4)
-                                break;
-
-                            double x, y;
-                            if (double.TryParse(l[2], out x) &&
-                                double.TryParse(l[3], out y))
+                            double x = 0.0, y = 0.0;
+                            if (double.TryParse(command.X, out x) &&
+                                double.TryParse(command.Y, out y))
                             {
-                                string name = l[1];
+                                string name = command.Name;
 
-                                var ellipse = new Ellipse()
-                                {
-                                    /*
-                                    Stroke = Brushes.Red,
-                                    Fill = Brushes.Red,
-                                    StrokeThickness = 1.0,
-                                    Width = 8,
-                                    Height = 8,
-                                    Margin = new Thickness(-4.0, -4.0, 0.0, 0.0)
-                                    */
-                                };
+                                var ellipse = new Ellipse();
 
                                 ellipse.SetResourceReference(StyleProperty, "BlockEllipseKey");
-
                                 ellipse.Name = name;
-
                                 ellipse.ToolTip = name;
 
                                 //ellipse.SetValue(UseLayoutRoundingProperty, false);
@@ -270,21 +251,17 @@ namespace BlockDesigner
 
                     #region Grid
 
-                    // grid name x y width height
+                    // grid <name> <x> <y> <width> <height>
                     case "grid":
                         {
-                            if (l.Length != 6)
-                                break;
-
-                            string name = l[1];
+                            string name = command.Name;
                             if (grids.ContainsKey(name) == false)
                             {
-                                double x, y;
-                                double width, height;
-                                if (double.TryParse(l[2], out x) &&
-                                    double.TryParse(l[3], out y) &&
-                                    double.TryParse(l[4], out width) &&
-                                    double.TryParse(l[5], out height))
+                                double x = 0.0, y = 0.0, width = 0.0, height = 0.0;
+                                if (double.TryParse(command.X, out x) &&
+                                    double.TryParse(command.Y, out y) &&
+                                    double.TryParse(command.Width, out width) &&
+                                    double.TryParse(command.Height, out height))
                                 {
                                     var grid = new Grid()
                                     {
@@ -307,24 +284,19 @@ namespace BlockDesigner
 
                     #region Row
 
-                    // row grid-name height
+                    // row <grid-name> <height>
                     case "row":
                         {
-                            if (l.Length != 3)
-                                break;
-
-                            string gridName = l[1];
-
-                            if (grids.ContainsKey(gridName))
+                            if (grids.ContainsKey(command.GridName))
                             {
                                 double height;
-                                if (double.TryParse(l[2], out height))
+                                if (double.TryParse(command.Height, out height))
                                 {
-                                    Grid grid = grids[gridName];
+                                    Grid grid = grids[command.GridName];
 
-                                    grid.RowDefinitions.Add(new RowDefinition() 
-                                    { 
-                                        Height = new GridLength(height) 
+                                    grid.RowDefinitions.Add(new RowDefinition()
+                                    {
+                                        Height = new GridLength(height)
                                     });
                                 }
                             }
@@ -335,20 +307,15 @@ namespace BlockDesigner
 
                     #region Column
 
-                    // column grid-name width
+                    // column <grid-name> <width>
                     case "column":
                         {
-                            if (l.Length != 3)
-                                break;
-
-                            string gridName = l[1];
-
-                            if (grids.ContainsKey(gridName))
+                            if (grids.ContainsKey(command.GridName))
                             {
                                 double width;
-                                if (double.TryParse(l[2], out width))
+                                if (double.TryParse(command.Width, out width))
                                 {
-                                    Grid grid = grids[gridName];
+                                    Grid grid = grids[command.GridName];
 
                                     grid.ColumnDefinitions.Add(new ColumnDefinition
                                     {
@@ -363,11 +330,10 @@ namespace BlockDesigner
 
                     #region Text
 
-                    // 0    1    2         3   4      5        6           7           8           9           10        11   12                
-                    // text grid grid-name row column row-span column-span v-alignment h-alignment font-family font-size bold text
+                    // text <grid> <grid-name> <row> <column> <row-span> <column-span> <v-alignment> <h-alignment> <font-family> <font-size> <bold> <text>
                     //where:
-                    // grid -> layout type grid
-                    // grid-name -> target grid
+                    // grid -> layout type for text is grid
+                    // grid-name -> target layout grid name
                     // row, column
                     // row-span, column-span
                     // v-alignment -> top, bottom, center, stretch
@@ -377,42 +343,35 @@ namespace BlockDesigner
                     // text
                     case "text":
                         {
-                            if (l.Length != 13)
-                                break;
-
-                            string layout = l[1];
-
-                            switch (layout)
+                            switch (command.Layout as string)
                             {
                                 // eg.: text grid g1 1 0 1 1 center center Arial 10 false SA
                                 case "grid":
                                     {
-                                        string gridName = l[2];
-
-                                        if (grids.ContainsKey(gridName) == false)
+                                        if (grids.ContainsKey(command.GridName) == false)
                                             break;
 
-                                        Grid grid = grids[gridName];
+                                        Grid grid = grids[command.GridName];
 
-                                        int r, c, rs, cs;
-                                        if (int.TryParse(l[3], out r) == false ||
-                                            int.TryParse(l[4], out c) == false ||
-                                            int.TryParse(l[5], out rs) == false ||
-                                            int.TryParse(l[6], out cs) == false)
+                                        int r = 0, c = 0, rs = 1, cs = 1;
+                                        if (int.TryParse(command.Row, out r) == false ||
+                                            int.TryParse(command.Column, out c) == false ||
+                                            int.TryParse(command.RowSpan, out rs) == false ||
+                                            int.TryParse(command.ColumnSpan, out cs) == false)
                                             break;
 
                                         double fontSize;
-                                        if (double.TryParse(l[10], out fontSize) == false)
+                                        if (double.TryParse(command.FontSize, out fontSize) == false)
                                             break;
 
                                         bool isBold;
-                                        if (bool.TryParse(l[11], out isBold) == false)
+                                        if (bool.TryParse(command.IsBold, out isBold) == false)
                                             break;
 
                                         var tb = new TextBlock()
                                         {
-                                            Text = l[12],
-                                            FontFamily = new FontFamily(l[9]),
+                                            Text = command.Text,
+                                            FontFamily = new FontFamily(command.FontFamily),
                                             FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
                                             FontSize = fontSize,
                                             Foreground = Brushes.Red
@@ -426,9 +385,9 @@ namespace BlockDesigner
                                         Grid.SetColumnSpan(tb, cs);
                                         Grid.SetRowSpan(tb, rs);
 
-                                        switch (l[7])
+                                        switch (command.VerticalAlignment as string)
                                         {
-                                            case "top": 
+                                            case "top":
                                                 tb.SetValue(VerticalAlignmentProperty, VerticalAlignment.Top);
                                                 break;
                                             case "bottom":
@@ -442,7 +401,7 @@ namespace BlockDesigner
                                                 break;
                                         }
 
-                                        switch (l[8])
+                                        switch (command.HorizontalAlignment as string)
                                         {
                                             case "left":
                                                 tb.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Left);
@@ -470,7 +429,7 @@ namespace BlockDesigner
             }
 
             // reset canvas
-            canvas.Children.Clear();
+            CanvasDesignArea.Children.Clear();
 
             // lines
             var path = new Path() { StrokeThickness = 1.0, Stroke = Brushes.Red };
