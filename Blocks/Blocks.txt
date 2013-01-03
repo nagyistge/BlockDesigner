@@ -1,1 +1,3 @@
+﻿execute ..\..\..\Blocks\Block.AndGate.txt
+execute ..\..\..\Blocks\Block.OrGate.txt
 execute ..\..\..\Blocks\Block.OneWayMotor.txt
