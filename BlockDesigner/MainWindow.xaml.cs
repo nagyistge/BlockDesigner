@@ -139,17 +139,10 @@ namespace BlockDesigner
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            var text = TextCode.Text;
-            var lines = new List<string[]>();
-
-            using (System.IO.StringReader reader = new System.IO.StringReader(text))
-            {
-                string line;
-                while ((line = reader.ReadLine()) != null)
-                    lines.Add(line.Split(' '));
-            }
+            var lines = Compiler.GetLines(TextCode.Text);
 
             var commands = Parser.GetCommands(lines);
+
             CompileUserCode(commands);
 
             sw.Stop();
@@ -429,7 +422,7 @@ namespace BlockDesigner
             }
 
             // reset canvas
-            CanvasDesignArea.Children.Clear();
+            //CanvasDesignArea.Children.Clear();
 
             // lines
             var path = new Path() { StrokeThickness = 1.0, Stroke = Brushes.Red };
@@ -480,7 +473,6 @@ namespace BlockDesigner
             Canvas.SetTop(thumb, 30);
 
             CanvasDesignArea.Children.Add(thumb);
-
         }
 
         #endregion
