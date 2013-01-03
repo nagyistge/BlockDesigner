@@ -41,18 +41,18 @@
                 <ColumnDefinition Width="50*"/>
                 <ColumnDefinition Width="50*"/>
             </Grid.ColumnDefinitions>
-            
-            <Button x:Name="ButtonSaveCodeToFile" 
-                    Click="ButtonSaveCodeToFile_Click"
-                    Content="_Save code!" 
+
+            <Button x:Name="ButtonLoadCodeFromFile" 
+                    Click="ButtonLoadCodeFromFile_Click"
+                    Content="_Load code!" 
                     Grid.Column="0" 
                     Grid.Row="0"
                     Margin="2">
             </Button>
 
-            <Button x:Name="ButtonLoadCodeFromFile" 
-                    Click="ButtonLoadCodeFromFile_Click"
-                    Content="_Load code!" 
+            <Button x:Name="ButtonSaveCodeToFile" 
+                    Click="ButtonSaveCodeToFile_Click"
+                    Content="_Save code!" 
                     Grid.Column="1" 
                     Grid.Row="0"
                     Margin="2">
