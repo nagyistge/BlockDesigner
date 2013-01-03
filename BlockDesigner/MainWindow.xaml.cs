@@ -436,7 +436,15 @@ namespace BlockDesigner
             //CanvasDesignArea.Children.Clear();
 
             // lines
-            var path = new Path() { StrokeThickness = 1.0, Stroke = Brushes.Red };
+            var path = new Path() 
+            {
+                StrokeThickness = 1.0, 
+                StrokeStartLineCap = PenLineCap.Square,
+                StrokeEndLineCap = PenLineCap.Square,
+                StrokeLineJoin = PenLineJoin.Miter,
+                Stroke = Brushes.Red
+            };
+
             RenderOptions.SetEdgeMode(path, EdgeMode.Aliased);
             path.SetValue(SnapsToDevicePixelsProperty, false);
             Canvas.SetLeft(path, offset);
