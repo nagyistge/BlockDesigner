@@ -65,7 +65,7 @@
                 <RowDefinition Height="60*"/>
                 <RowDefinition Height="40*"/>
             </Grid.RowDefinitions>
-            
+
             <TextBox x:Name="TextCode"
                      Grid.Column="0" 
                      Grid.Row="0" 

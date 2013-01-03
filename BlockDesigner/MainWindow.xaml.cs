@@ -139,7 +139,9 @@ namespace BlockDesigner
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            var lines = Compiler.GetLines(TextCode.Text);
+            var codeText = TextCode.Text;
+
+            var lines = Compiler.GetLines(codeText);
 
             var commands = Parser.GetCommands(lines);
 

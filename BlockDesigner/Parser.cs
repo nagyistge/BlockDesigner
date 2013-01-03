@@ -24,6 +24,16 @@ namespace BlockDesigner
             {
                 switch(l[0])
                 {
+                    // execute <path>
+                    case "execute":
+                        {
+                            dynamic command = new ExpandoObject();
+                            command.Version = "1.0";
+                            command.Command = l[0];
+                            command.Path = l[1];
+                            commands.Add(command);
+                        }
+                        break;
                     // block <name> <width> <height>
                     case "block":
                         {
@@ -37,6 +47,16 @@ namespace BlockDesigner
                                 command.Height = l[3];
                                 commands.Add(command);
                             }
+                        }
+                        break;
+                    // simulation <path>
+                    case "simulation":
+                        {
+                            dynamic command = new ExpandoObject();
+                            command.Version = "1.0";
+                            command.Command = l[0];
+                            command.Path = l[1];
+                            commands.Add(command);
                         }
                         break;
                     // line <x1> <y1> <x2> <y2>
