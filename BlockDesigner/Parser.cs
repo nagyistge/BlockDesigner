@@ -20,7 +20,7 @@ namespace BlockDesigner
         {
             var sb = new StringBuilder();
 
-            using (var stream = new System.IO.StreamReader(fileName))
+            using (var stream = new System.IO.StreamReader(fileName, Encoding.UTF8))
             {
                 string line;
                 while ((line = stream.ReadLine()) != null)
@@ -34,7 +34,7 @@ namespace BlockDesigner
 
         public static void SaveText(string fileName, string text)
         {
-            using (var stream = new System.IO.StreamWriter(fileName))
+            using (var stream = new System.IO.StreamWriter(fileName, false, Encoding.UTF8))
             {
                 stream.Write(text);
             }
