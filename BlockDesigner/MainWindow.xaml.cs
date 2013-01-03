@@ -176,6 +176,17 @@ namespace BlockDesigner
             {
                 switch (command.Command as string)
                 {
+                    #region Execute
+
+                    // execute <path>
+                    case "execute":
+                        {
+                            
+                        }
+                        break;
+
+                    #endregion
+
                     #region Block
 
                     // block <name> <width> <height>
@@ -190,6 +201,17 @@ namespace BlockDesigner
                                 canvas.Width = width;
                                 canvas.Height = height;
                             }
+                        }
+                        break;
+
+                    #endregion
+
+                    #region Simulation
+
+                    // simulation <path>
+                    case "simulation":
+                        {
+
                         }
                         break;
 
