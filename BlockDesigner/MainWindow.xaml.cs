@@ -123,7 +123,7 @@ namespace BlockDesigner
             var commands = Parser.ParseLines(lines);
 
             // reset canvas
-            //CanvasDesignArea.Children.Clear();
+            CanvasDesignArea.Children.Clear();
 
             var blocks = Compile(commands);
 
