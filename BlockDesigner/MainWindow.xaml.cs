@@ -119,12 +119,47 @@ namespace BlockDesigner
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
             var codeText = TextCode.Text;
-
             var lines = Parser.SplitText(codeText);
-
             var commands = Parser.ParseLines(lines);
 
-            Compile(commands);
+            // reset canvas
+            //CanvasDesignArea.Children.Clear();
+
+            var blocks = Compile(commands);
+
+            TextXaml.Text = FormatXml(GetResourceDictionary(blocks));
+
+            double offset = 30;
+            double nextBlockOffset = offset;
+
+            var sb = new StringBuilder();
+            foreach (var tuple in blocks)
+            {
+                // add block to designer canvas
+                var ctText = GetControlTemplate(tuple.Item2, tuple.Item1);
+                var ct = (ControlTemplate)XamlReader.Parse(ctText);
+
+                var thumb = new Thumb()
+                {
+                    Template = ct
+                };
+
+                thumb.DragDelta += (sender, e) =>
+                {
+                    var t = sender as Thumb;
+                    double x = Canvas.GetLeft(t) + e.HorizontalChange;
+                    double y = Canvas.GetTop(t) + e.VerticalChange;
+                    Canvas.SetLeft(t, x);
+                    Canvas.SetTop(t, y);
+                };
+
+                Canvas.SetLeft(thumb, offset);
+                Canvas.SetTop(thumb, nextBlockOffset);
+
+                CanvasDesignArea.Children.Add(thumb);
+
+                nextBlockOffset += offset + (tuple.Item2 as Canvas).Height;
+            }
 
             sw.Stop();
             System.Diagnostics.Debug.Print("Compiled code in {0}ms", sw.Elapsed.TotalMilliseconds);
@@ -134,22 +169,14 @@ namespace BlockDesigner
             #endif
         }
 
-        private void Compile(IEnumerable<dynamic> commands)
+        private IEnumerable<Tuple<string,object>> Compile(IEnumerable<dynamic> commands)
         {
             double offset = 0.0;
-
-            var linesStringBuilder = new StringBuilder();
-            var pinEllipses = new List<Ellipse>();
-            var textBlocks = new List<TextBlock>();
-            var grids = new Dictionary<string, Grid>();
-
-            var canvas = new Canvas()
-            {
-                Background = Brushes.Transparent,
-                ClipToBounds = false
-            };
-
-            string block_name = "BlockName";
+            StringBuilder linesStringBuilder = null;
+            Path currentPath = null;
+            Grid currentGrid = null;
+            Canvas currentCanvas = null;
+            string blockName = string.Empty;
 
             foreach (dynamic command in commands)
             {
@@ -167,7 +194,10 @@ namespace BlockDesigner
 
                                 var cmds = Parser.ParseLines(lines);
 
-                                Compile(cmds);
+                                foreach (var tuple in Compile(cmds))
+                                {
+                                    yield return tuple;
+                                }
                             }
                         }
                         break;
@@ -176,17 +206,48 @@ namespace BlockDesigner
 
                     #region Block
 
-                    // block <name> <width> <height>
+                    // block begin <name> <width> <height>
+                    // block end
                     case "block":
                         {
-                            block_name = command.Name;
-
-                            double width = 0.0, height = 0.0;
-                            if (double.TryParse(command.Width, out width) &&
-                                double.TryParse(command.Height, out height))
+                            switch (command.State as string)
                             {
-                                canvas.Width = width;
-                                canvas.Height = height;
+                                case "begin":
+                                    {
+                                        if (currentCanvas != null)
+                                            break;
+
+                                        double width = 0.0, height = 0.0;
+                                        if (double.TryParse(command.Width, out width) &&
+                                            double.TryParse(command.Height, out height))
+                                        {
+                                            var canvas = new Canvas()
+                                            {
+                                                Background = Brushes.Transparent,
+                                                ClipToBounds = false
+                                            };
+
+                                            canvas.Width = width;
+                                            canvas.Height = height;
+
+                                            blockName = command.Name;
+
+                                            currentCanvas = canvas;
+                                        }
+                                    }
+                                    break;
+                                case "end":
+                                    {
+                                        if (currentCanvas == null)
+                                            break;
+
+                                        var tuple = new Tuple<string, object>(blockName + "ControlTemplateKey", currentCanvas);
+
+                                        yield return tuple;
+
+                                        currentCanvas = null;
+                                    }
+                                    break;
                             }
                         }
                         break;
@@ -204,11 +265,66 @@ namespace BlockDesigner
 
                     #endregion
 
+                    #region Path
+
+                    // path begin
+                    // path end
+                    case "path":
+                        {
+                            switch (command.State as string)
+                            {
+                                case "begin":
+                                    {
+                                        if (currentCanvas == null || currentPath != null)
+                                            break;
+
+                                        var path = new Path()
+                                        {
+                                            StrokeThickness = 1.0,
+                                            StrokeStartLineCap = PenLineCap.Square,
+                                            StrokeEndLineCap = PenLineCap.Square,
+                                            StrokeLineJoin = PenLineJoin.Miter,
+                                            Stroke = Brushes.Red
+                                        };
+
+                                        RenderOptions.SetEdgeMode(path, EdgeMode.Aliased);
+                                        path.SetValue(SnapsToDevicePixelsProperty, false);
+                                        Canvas.SetLeft(path, offset);
+                                        Canvas.SetTop(path, offset);
+
+                                        currentCanvas.Children.Add(path);
+
+                                        currentPath = path;
+                                        linesStringBuilder = new StringBuilder();
+                                    }
+                                    break;
+                                case "end":
+                                    {
+                                        if (currentPath == null)
+                                            break;
+
+                                        string pathData = linesStringBuilder.ToString();
+                                        currentPath.Data = Geometry.Parse(pathData);
+
+                                        currentPath = null;
+                                        linesStringBuilder = null;
+                                    }
+                                    break;
+                            }
+                        }
+                        break;
+
+                    #endregion
+
                     #region Line
 
+                    // Add new line to current path
                     // line <x1> <y1> <x2> <y2>
                     case "line":
                         {
+                            if (currentPath == null || linesStringBuilder == null)
+                                break;
+
                             double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
                             if (double.TryParse(command.X1, out x1) &&
                                 double.TryParse(command.Y1, out y1) &&
@@ -228,6 +344,9 @@ namespace BlockDesigner
                     // pin <name> <x> <y>
                     case "pin":
                         {
+                            if (currentCanvas == null)
+                                break;
+
                             double x = 0.0, y = 0.0;
                             if (double.TryParse(command.X, out x) &&
                                 double.TryParse(command.Y, out y))
@@ -246,7 +365,7 @@ namespace BlockDesigner
                                 Canvas.SetLeft(ellipse, x + offset);
                                 Canvas.SetTop(ellipse, y + offset);
 
-                                pinEllipses.Add(ellipse);
+                                currentCanvas.Children.Add(ellipse);
                             }
                         }
                         break;
@@ -255,31 +374,47 @@ namespace BlockDesigner
 
                     #region Grid
 
-                    // grid <name> <x> <y> <width> <height>
+                    // grid begin <x> <y> <width> <height>
+                    // grud end
                     case "grid":
                         {
-                            string name = command.Name;
-                            if (grids.ContainsKey(name) == false)
+                            switch (command.State as string)
                             {
-                                double x = 0.0, y = 0.0, width = 0.0, height = 0.0;
-                                if (double.TryParse(command.X, out x) &&
-                                    double.TryParse(command.Y, out y) &&
-                                    double.TryParse(command.Width, out width) &&
-                                    double.TryParse(command.Height, out height))
-                                {
-                                    var grid = new Grid()
+                                case "begin":
                                     {
-                                        Name = name,
-                                        Width = width,
-                                        Height = height,
-                                        Background = Brushes.Transparent
-                                    };
+                                        if (currentGrid != null || currentCanvas == null)
+                                            break;
 
-                                    Canvas.SetLeft(grid, x + offset);
-                                    Canvas.SetTop(grid, y + offset);
+                                        double x = 0.0, y = 0.0, width = 0.0, height = 0.0;
+                                        if (double.TryParse(command.X, out x) &&
+                                            double.TryParse(command.Y, out y) &&
+                                            double.TryParse(command.Width, out width) &&
+                                            double.TryParse(command.Height, out height))
+                                        {
+                                            var grid = new Grid()
+                                            {
+                                                Width = width,
+                                                Height = height,
+                                                Background = Brushes.Transparent
+                                            };
 
-                                    grids.Add(name, grid);
-                                }
+                                            Canvas.SetLeft(grid, x + offset);
+                                            Canvas.SetTop(grid, y + offset);
+
+                                            currentCanvas.Children.Add(grid);
+
+                                            currentGrid = grid;
+                                        }
+                                    }
+                                    break;
+                                case "end":
+                                    {
+                                        if (currentGrid == null)
+                                            break;
+
+                                        currentGrid = null;
+                                    }
+                                    break;
                             }
                         }
                         break;
@@ -288,21 +423,19 @@ namespace BlockDesigner
 
                     #region Row
 
-                    // row <grid-name> <height>
+                    // row <height>
                     case "row":
                         {
-                            if (grids.ContainsKey(command.GridName))
-                            {
-                                double height;
-                                if (double.TryParse(command.Height, out height))
-                                {
-                                    Grid grid = grids[command.GridName];
+                            if (currentGrid == null)
+                                break;
 
-                                    grid.RowDefinitions.Add(new RowDefinition()
-                                    {
-                                        Height = new GridLength(height)
-                                    });
-                                }
+                            double height;
+                            if (double.TryParse(command.Height, out height))
+                            {
+                                currentGrid.RowDefinitions.Add(new RowDefinition()
+                                {
+                                    Height = new GridLength(height)
+                                });
                             }
                         }
                         break;
@@ -311,21 +444,19 @@ namespace BlockDesigner
 
                     #region Column
 
-                    // column <grid-name> <width>
+                    // column <width>
                     case "column":
                         {
-                            if (grids.ContainsKey(command.GridName))
-                            {
-                                double width;
-                                if (double.TryParse(command.Width, out width))
-                                {
-                                    Grid grid = grids[command.GridName];
+                            if (currentGrid == null)
+                                break;
 
-                                    grid.ColumnDefinitions.Add(new ColumnDefinition
-                                    {
-                                        Width = new GridLength(width)
-                                    });
-                                }
+                            double width;
+                            if (double.TryParse(command.Width, out width))
+                            {
+                                currentGrid.ColumnDefinitions.Add(new ColumnDefinition
+                                {
+                                    Width = new GridLength(width)
+                                });
                             }
                         }
                         break;
@@ -334,164 +465,93 @@ namespace BlockDesigner
 
                     #region Text
 
-                    // text <grid> <grid-name> <row> <column> <row-span> <column-span> <v-alignment> <h-alignment> <font-family> <font-size> <bold> <text>
+                    // text <row> <column> <row-span> <column-span> <v-alignment> <h-alignment> <font-family> <font-size> <bold> <text>
                     //where:
-                    // grid -> layout type for text is grid
-                    // grid-name -> target layout grid name
-                    // row, column
-                    // row-span, column-span
-                    // v-alignment -> top, bottom, center, stretch
-                    // h-alignment -> left, right, center, stretch
+                    // current grid: row, column
+                    // current grid: row-span, column-span
+                    // current grid: v-alignment -> top, bottom, center, stretch
+                    // current grid: h-alignment -> left, right, center, stretch
                     // font-family, font-size
                     // bold -> true, false
                     // text
+                    //
+                    // example: text 0 0 1 1 center center Arial 10 false SomeText
                     case "text":
                         {
-                            switch (command.Layout as string)
+                            if (currentGrid == null)
+                                break;
+
+                            int r = 0, c = 0, rs = 1, cs = 1;
+                            if (int.TryParse(command.Row, out r) == false ||
+                                int.TryParse(command.Column, out c) == false ||
+                                int.TryParse(command.RowSpan, out rs) == false ||
+                                int.TryParse(command.ColumnSpan, out cs) == false)
+                                break;
+
+                            double fontSize;
+                            if (double.TryParse(command.FontSize, out fontSize) == false)
+                                break;
+
+                            bool isBold;
+                            if (bool.TryParse(command.IsBold, out isBold) == false)
+                                break;
+
+                            var tb = new TextBlock()
                             {
-                                // eg.: text grid g1 1 0 1 1 center center Arial 10 false SA
-                                case "grid":
-                                    {
-                                        if (grids.ContainsKey(command.GridName) == false)
-                                            break;
+                                Text = command.Text,
+                                FontFamily = new FontFamily(command.FontFamily),
+                                FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
+                                FontSize = fontSize,
+                                Foreground = Brushes.Red
+                            };
 
-                                        Grid grid = grids[command.GridName];
+                            RenderOptions.SetEdgeMode(tb, EdgeMode.Aliased);
+                            tb.SetValue(SnapsToDevicePixelsProperty, false);
 
-                                        int r = 0, c = 0, rs = 1, cs = 1;
-                                        if (int.TryParse(command.Row, out r) == false ||
-                                            int.TryParse(command.Column, out c) == false ||
-                                            int.TryParse(command.RowSpan, out rs) == false ||
-                                            int.TryParse(command.ColumnSpan, out cs) == false)
-                                            break;
+                            Grid.SetColumn(tb, c);
+                            Grid.SetRow(tb, r);
+                            Grid.SetColumnSpan(tb, cs);
+                            Grid.SetRowSpan(tb, rs);
 
-                                        double fontSize;
-                                        if (double.TryParse(command.FontSize, out fontSize) == false)
-                                            break;
-
-                                        bool isBold;
-                                        if (bool.TryParse(command.IsBold, out isBold) == false)
-                                            break;
-
-                                        var tb = new TextBlock()
-                                        {
-                                            Text = command.Text,
-                                            FontFamily = new FontFamily(command.FontFamily),
-                                            FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
-                                            FontSize = fontSize,
-                                            Foreground = Brushes.Red
-                                        };
-
-                                        RenderOptions.SetEdgeMode(tb, EdgeMode.Aliased);
-                                        tb.SetValue(SnapsToDevicePixelsProperty, false);
-
-                                        Grid.SetColumn(tb, c);
-                                        Grid.SetRow(tb, r);
-                                        Grid.SetColumnSpan(tb, cs);
-                                        Grid.SetRowSpan(tb, rs);
-
-                                        switch (command.VerticalAlignment as string)
-                                        {
-                                            case "top":
-                                                tb.SetValue(VerticalAlignmentProperty, VerticalAlignment.Top);
-                                                break;
-                                            case "bottom":
-                                                tb.SetValue(VerticalAlignmentProperty, VerticalAlignment.Bottom);
-                                                break;
-                                            case "center":
-                                                tb.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
-                                                break;
-                                            case "stretch":
-                                                tb.SetValue(VerticalAlignmentProperty, VerticalAlignment.Stretch);
-                                                break;
-                                        }
-
-                                        switch (command.HorizontalAlignment as string)
-                                        {
-                                            case "left":
-                                                tb.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Left);
-                                                break;
-                                            case "right":
-                                                tb.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Right);
-                                                break;
-                                            case "center":
-                                                tb.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
-                                                break;
-                                            case "stretch":
-                                                tb.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Stretch);
-                                                break;
-                                        }
-
-                                        grid.Children.Add(tb);
-                                    }
+                            switch (command.VerticalAlignment as string)
+                            {
+                                case "top":
+                                    tb.SetValue(VerticalAlignmentProperty, VerticalAlignment.Top);
+                                    break;
+                                case "bottom":
+                                    tb.SetValue(VerticalAlignmentProperty, VerticalAlignment.Bottom);
+                                    break;
+                                case "center":
+                                    tb.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+                                    break;
+                                case "stretch":
+                                    tb.SetValue(VerticalAlignmentProperty, VerticalAlignment.Stretch);
                                     break;
                             }
+
+                            switch (command.HorizontalAlignment as string)
+                            {
+                                case "left":
+                                    tb.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Left);
+                                    break;
+                                case "right":
+                                    tb.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Right);
+                                    break;
+                                case "center":
+                                    tb.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
+                                    break;
+                                case "stretch":
+                                    tb.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Stretch);
+                                    break;
+                            }
+
+                            currentGrid.Children.Add(tb);
                         }
                         break;
 
                     #endregion
                 }
             }
-
-            // reset canvas
-            //CanvasDesignArea.Children.Clear();
-
-            // lines
-            var path = new Path() 
-            {
-                StrokeThickness = 1.0, 
-                StrokeStartLineCap = PenLineCap.Square,
-                StrokeEndLineCap = PenLineCap.Square,
-                StrokeLineJoin = PenLineJoin.Miter,
-                Stroke = Brushes.Red
-            };
-
-            RenderOptions.SetEdgeMode(path, EdgeMode.Aliased);
-            path.SetValue(SnapsToDevicePixelsProperty, false);
-            Canvas.SetLeft(path, offset);
-            Canvas.SetTop(path, offset);
-            string pathData = linesStringBuilder.ToString();
-            path.Data = Geometry.Parse(pathData);
-            canvas.Children.Add(path);
-
-            // pins
-            foreach (var ellipse in pinEllipses)
-                canvas.Children.Add(ellipse);
-
-            // grids
-            foreach (var grid in grids)
-                canvas.Children.Add(grid.Value);
-
-            // generate Xaml
-
-            var objects = new Dictionary<string, object>();
-
-            objects.Add(block_name + "ControlTemplateKey", canvas);
-
-            TextXaml.Text = FormatXml(GetResourceDictionary(objects));
-
-            // add block to designer canvas
-
-            var ctText = GetControlTemplate(canvas, block_name + "ControlTemplateKey");
-            var ct = (ControlTemplate)XamlReader.Parse(ctText);
-
-            var thumb = new Thumb()
-            {
-                Template = ct
-            };
-
-            thumb.DragDelta += (sender, e) =>
-            {
-                var t = sender as Thumb;
-                double x = Canvas.GetLeft(t) + e.HorizontalChange;
-                double y = Canvas.GetTop(t) + e.VerticalChange;
-                Canvas.SetLeft(t, x);
-                Canvas.SetTop(t, y);
-            };
-
-            Canvas.SetLeft(thumb, 30);
-            Canvas.SetTop(thumb, 30);
-
-            CanvasDesignArea.Children.Add(thumb);
         }
 
         #endregion
@@ -578,7 +638,7 @@ namespace BlockDesigner
                 "</Style>";
         }
 
-        private string GetResourceDictionary(Dictionary<string, object> objects)
+        private string GetResourceDictionary(IEnumerable<Tuple<string, object>> blocks)
         {
             var sb = new StringBuilder();
 
@@ -594,9 +654,9 @@ namespace BlockDesigner
             sb.AppendLine(ellipseStyleText);
 
             // create control templates
-            foreach(var item in objects)
+            foreach(var tuple in blocks)
             {
-                 string objText = GetControlTemplate(item.Value, item.Key);
+                string objText = GetControlTemplate(tuple.Item2, tuple.Item1);
 
                 sb.AppendLine(objText);
             }
