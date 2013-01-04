@@ -49,7 +49,8 @@ namespace BlockDesigner
                 string line;
                 while ((line = stream.ReadLine()) != null)
                 {
-                    lines.Add(line.Split(' '));
+                    char[] splitchar = { ' ' };
+                    lines.Add(line.Split(splitchar, StringSplitOptions.RemoveEmptyEntries));
                 }
             }
 
@@ -65,7 +66,8 @@ namespace BlockDesigner
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    lines.Add(line.Split(' '));
+                    char[] splitchar = { ' ' };
+                    lines.Add(line.Split(splitchar, StringSplitOptions.RemoveEmptyEntries));
                 }
             }
 
@@ -78,6 +80,10 @@ namespace BlockDesigner
             
             foreach (var l in lines)
             {
+                // skip empty lines
+                if (l.Length <= 0)
+                    continue;
+
                 switch(l[0])
                 {
                     // execute <path>
@@ -93,17 +99,27 @@ namespace BlockDesigner
                             }
                         }
                         break;
-                    // block <name> <width> <height>
+                    // block begin <name> <width> <height>
+                    // block end
                     case "block":
                         {
-                            if (l.Length == 4)
+                            if (l.Length == 5)
                             {
                                 dynamic command = new ExpandoObject();
                                 command.Version = "1.0";
                                 command.Command = l[0];
-                                command.Name = l[1];
-                                command.Width = l[2];
-                                command.Height = l[3];
+                                command.State = l[1];
+                                command.Name = l[2];
+                                command.Width = l[3];
+                                command.Height = l[4];
+                                commands.Add(command);
+                            }
+                            else if (l.Length == 2)
+                            {
+                                dynamic command = new ExpandoObject();
+                                command.Version = "1.0";
+                                command.Command = l[0];
+                                command.State = l[1];
                                 commands.Add(command);
                             }
                         }
@@ -116,6 +132,21 @@ namespace BlockDesigner
                             command.Command = l[0];
                             command.Path = l[1];
                             commands.Add(command);
+                        }
+                        break;
+                    // path <state>
+                    // path begin
+                    // path end
+                    case "path":
+                        {
+                            if (l.Length == 2)
+                            {
+                                dynamic command = new ExpandoObject();
+                                command.Version = "1.0";
+                                command.Command = l[0];
+                                command.State = l[1];
+                                commands.Add(command);
+                            }
                         }
                         break;
                     // line <x1> <y1> <x2> <y2>
@@ -149,7 +180,8 @@ namespace BlockDesigner
                             }
                         }
                         break;
-                    // grid <name> <x> <y> <width> <height>
+                    // grid begin <x> <y> <width> <height>
+                    // grud end
                     case "grid":
                         {
                             if (l.Length == 6)
@@ -157,63 +189,67 @@ namespace BlockDesigner
                                 dynamic command = new ExpandoObject();
                                 command.Version = "1.0";
                                 command.Command = l[0];
-                                command.Name = l[1];
+                                command.State = l[1];
                                 command.X = l[2];
                                 command.Y = l[3];
                                 command.Width = l[4];
                                 command.Height = l[5];
                                 commands.Add(command);
                             }
+                            else if (l.Length == 2)
+                            {
+                                dynamic command = new ExpandoObject();
+                                command.Version = "1.0";
+                                command.Command = l[0];
+                                command.State = l[1];
+                                commands.Add(command);
+                            }
                         }
                         break;
-                    // row <grid-name> <height>
+                    // row <height>
                     case "row":
                         {
-                            if (l.Length == 3)
+                            if (l.Length == 2)
                             {
                                 dynamic command = new ExpandoObject();
                                 command.Version = "1.0";
                                 command.Command = l[0];
-                                command.GridName = l[1];
-                                command.Height = l[2];
+                                command.Height = l[1];
                                 commands.Add(command);
                             }
                         }
                         break;
-                    // column <grid-name> <width>
+                    // column <width>
                     case "column":
                         {
-                            if (l.Length == 3)
+                            if (l.Length == 2)
                             {
                                 dynamic command = new ExpandoObject();
                                 command.Version = "1.0";
                                 command.Command = l[0];
-                                command.GridName = l[1];
-                                command.Width = l[2];
+                                command.Width = l[1];
                                 commands.Add(command);
                             }
                         }
                         break;
-                    // text <grid> <grid-name> <row> <column> <row-span> <column-span> <v-alignment> <h-alignment> <font-family> <font-size> <bold> <text>
+                    // text <row> <column> <row-span> <column-span> <v-alignment> <h-alignment> <font-family> <font-size> <bold> <text>
                     case "text":
                         {
-                            if (l.Length == 13)
+                            if (l.Length == 11)
                             {
                                 dynamic command = new ExpandoObject();
                                 command.Version = "1.0";
                                 command.Command = l[0];
-                                command.Layout = l[1];
-                                command.GridName = l[2];
-                                command.Row = l[3];
-                                command.Column = l[4];
-                                command.RowSpan = l[5];
-                                command.ColumnSpan = l[6];
-                                command.VerticalAlignment = l[7];
-                                command.HorizontalAlignment = l[8];
-                                command.FontFamily = l[9];
-                                command.FontSize = l[10];
-                                command.IsBold = l[11];
-                                command.Text = l[12];
+                                command.Row = l[1];
+                                command.Column = l[2];
+                                command.RowSpan = l[3];
+                                command.ColumnSpan = l[4];
+                                command.VerticalAlignment = l[5];
+                                command.HorizontalAlignment = l[6];
+                                command.FontFamily = l[7];
+                                command.FontSize = l[8];
+                                command.IsBold = l[9];
+                                command.Text = l[10];
                                 commands.Add(command);
                             }
                         }
