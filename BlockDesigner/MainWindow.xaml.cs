@@ -127,8 +127,23 @@ namespace BlockDesigner
 
             var blocks = Compile(commands);
 
-            TextXaml.Text = FormatXml(GetResourceDictionary(blocks));
+            var resourceDictionary = GetResourceDictionary(blocks);
+            var formattedXaml = FormatXml(resourceDictionary);
 
+            TextXaml.Text = formattedXaml;
+
+            AddToDesignArea(blocks);
+
+            sw.Stop();
+            System.Diagnostics.Debug.Print("Compiled code in {0}ms", sw.Elapsed.TotalMilliseconds);
+
+            #if !DEBUG
+            MessageBox.Show("Compiled code in " + sw.Elapsed.TotalMilliseconds.ToString() + "ms");
+            #endif
+        }
+
+        private void AddToDesignArea(IEnumerable<Tuple<string, object>> blocks)
+        {
             double offset = 30;
             double nextBlockOffset = offset;
 
@@ -160,16 +175,9 @@ namespace BlockDesigner
 
                 nextBlockOffset += offset + (tuple.Item2 as Canvas).Height;
             }
-
-            sw.Stop();
-            System.Diagnostics.Debug.Print("Compiled code in {0}ms", sw.Elapsed.TotalMilliseconds);
-
-            #if !DEBUG
-            MessageBox.Show("Compiled code in " + sw.Elapsed.TotalMilliseconds.ToString() + "ms");
-            #endif
         }
 
-        private IEnumerable<Tuple<string,object>> Compile(IEnumerable<dynamic> commands)
+        private static IEnumerable<Tuple<string,object>> Compile(IEnumerable<dynamic> commands)
         {
             double offset = 0.0;
             StringBuilder linesStringBuilder = null;
@@ -356,11 +364,11 @@ namespace BlockDesigner
                                 var ellipse = new Ellipse();
 
                                 ellipse.SetResourceReference(StyleProperty, "BlockEllipseKey");
-                                ellipse.Name = name;
+                                //ellipse.Name = name;
                                 ellipse.ToolTip = name;
 
                                 //ellipse.SetValue(UseLayoutRoundingProperty, false);
-                                ellipse.SetValue(SnapsToDevicePixelsProperty, true);
+                                //ellipse.SetValue(SnapsToDevicePixelsProperty, true);
 
                                 Canvas.SetLeft(ellipse, x + offset);
                                 Canvas.SetTop(ellipse, y + offset);
@@ -572,24 +580,24 @@ namespace BlockDesigner
             {
                 var sw = System.Diagnostics.Stopwatch.StartNew();
 
-                ExportXamlToFile(dlg.FileName);
+                string xamlText = TextXaml.Text;
+
+                ExportXamlToFile(dlg.FileName, xamlText);
 
                 sw.Stop();
                 System.Diagnostics.Debug.Print("Exported xaml in {0}ms", sw.Elapsed.TotalMilliseconds);
             }
         }
 
-        private void ExportXamlToFile(string fileName)
+        private static void ExportXamlToFile(string fileName, string text)
         {
-            string xamlText = TextXaml.Text;
-
             using (var stream = new System.IO.StreamWriter(fileName))
             {
-                stream.Write(xamlText);
+                stream.Write(text);
             }
         }
 
-        private string GetXaml(object obj, string indent)
+        private static string GetXaml(object obj, string indent)
         {
             var sb = new StringBuilder();
             var writer = System.Xml.XmlWriter.Create(sb, new System.Xml.XmlWriterSettings
@@ -610,7 +618,7 @@ namespace BlockDesigner
             return sb.ToString();
         }
 
-        private string GetControlTemplate(object obj, string key)
+        private static string GetControlTemplate(object obj, string key)
         {
             string objXaml = GetXaml(obj, "    ");
 
@@ -624,7 +632,7 @@ namespace BlockDesigner
             return string.Concat(openTag, objXaml, closeTag); ;
         }
 
-        private string GetBlockEllipseStyle()
+        private static string GetBlockEllipseStyle()
         {
             return
                 "<Style x:Key=\"BlockEllipseKey\" TargetType=\"Ellipse\" xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">" +
@@ -638,7 +646,7 @@ namespace BlockDesigner
                 "</Style>";
         }
 
-        private string GetResourceDictionary(IEnumerable<Tuple<string, object>> blocks)
+        private static string GetResourceDictionary(IEnumerable<Tuple<string, object>> blocks)
         {
             var sb = new StringBuilder();
 
@@ -668,7 +676,7 @@ namespace BlockDesigner
             return sb.ToString();
         }
 
-        public static string FormatXml(string xml)
+        private static string FormatXml(string xml)
         {
             XmlDocument doc = new XmlDocument();
             
