@@ -255,11 +255,28 @@ namespace BlockDesigner
                     // text <row> <column> <row-span> <column-span> <v-alignment> <h-alignment> <font-family> <font-size> <bold> <text>
                     case "text":
                         {
-                            if (l.Length == 11)
+                            if (l.Length == 9)
                             {
                                 dynamic command = new ExpandoObject();
                                 command.Version = "1.0";
                                 command.Command = l[0];
+                                command.Layout = "canvas";
+                                command.X = l[1];
+                                command.Y = l[2];
+                                command.VerticalAlignment = l[3];
+                                command.HorizontalAlignment = l[4];
+                                command.FontFamily = l[5];
+                                command.FontSize = l[6];
+                                command.IsBold = l[7];
+                                command.Text = l[8];
+                                commands.Add(command);
+                            }
+                            else if (l.Length == 11)
+                            {
+                                dynamic command = new ExpandoObject();
+                                command.Version = "1.0";
+                                command.Command = l[0];
+                                command.Layout = "grid";
                                 command.Row = l[1];
                                 command.Column = l[2];
                                 command.RowSpan = l[3];

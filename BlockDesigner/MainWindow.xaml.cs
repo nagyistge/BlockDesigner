@@ -137,9 +137,9 @@ namespace BlockDesigner
             sw.Stop();
             System.Diagnostics.Debug.Print("Compiled code in {0}ms", sw.Elapsed.TotalMilliseconds);
 
-            #if !DEBUG
-            MessageBox.Show("Compiled code in " + sw.Elapsed.TotalMilliseconds.ToString() + "ms");
-            #endif
+            //#if !DEBUG
+            //MessageBox.Show("Compiled code in " + sw.Elapsed.TotalMilliseconds.ToString() + "ms");
+            //#endif
         }
 
         private void AddToDesignArea(IEnumerable<Tuple<string, object>> blocks)
@@ -478,27 +478,36 @@ namespace BlockDesigner
 
                     #region Text
 
+                    // Layout: grid
                     // text <row> <column> <row-span> <column-span> <v-alignment> <h-alignment> <font-family> <font-size> <bold> <text>
                     //where:
-                    // current grid: row, column
-                    // current grid: row-span, column-span
-                    // current grid: v-alignment -> top, bottom, center, stretch
-                    // current grid: h-alignment -> left, right, center, stretch
+                    // grid: row, column
+                    // grid: row-span, column-span
+                    // grid: v-alignment -> top, bottom, center, stretch
+                    // grid: h-alignment -> left, right, center, stretch
                     // font-family, font-size
                     // bold -> true, false
                     // text
                     //
                     // example: text 0 0 1 1 center center Arial 10 false SomeText
+                    //
+                    // Layout: canvas
+                    // text <x> <y> <v-alignment> <h-alignment> <font-family> <font-size> <bold> <text>
+                    //where:
+                    // canvas: x, y
+                    // canvas: v-alignment -> top, bottom, center, stretch
+                    // canvas: h-alignment -> left, right, center, stretch
+                    // font-family, font-size
+                    // bold -> true, false
+                    // text
+                    //
+                    // example: text 30 30 bottom right Arial 10 false SomeText
                     case "text":
                         {
-                            if (currentGrid == null)
+                            if (command.Layout == "grid" && currentGrid == null)
                                 break;
 
-                            int r = 0, c = 0, rs = 1, cs = 1;
-                            if (int.TryParse(command.Row, out r) == false ||
-                                int.TryParse(command.Column, out c) == false ||
-                                int.TryParse(command.RowSpan, out rs) == false ||
-                                int.TryParse(command.ColumnSpan, out cs) == false)
+                            if (command.Layout == "canvas" && currentCanvas == null)
                                 break;
 
                             double fontSize;
@@ -520,11 +529,6 @@ namespace BlockDesigner
 
                             RenderOptions.SetEdgeMode(tb, EdgeMode.Aliased);
                             tb.SetValue(SnapsToDevicePixelsProperty, false);
-
-                            Grid.SetColumn(tb, c);
-                            Grid.SetRow(tb, r);
-                            Grid.SetColumnSpan(tb, cs);
-                            Grid.SetRowSpan(tb, rs);
 
                             switch (command.VerticalAlignment as string)
                             {
@@ -558,7 +562,46 @@ namespace BlockDesigner
                                     break;
                             }
 
-                            currentGrid.Children.Add(tb);
+                            switch (command.Layout as string)
+                            {
+                                case "grid":
+                                    {
+                                        if (currentGrid == null)
+                                            break;
+
+                                        int r = 0, c = 0, rs = 1, cs = 1;
+                                        if (int.TryParse(command.Row, out r) == false ||
+                                            int.TryParse(command.Column, out c) == false ||
+                                            int.TryParse(command.RowSpan, out rs) == false ||
+                                            int.TryParse(command.ColumnSpan, out cs) == false)
+                                            break;
+
+                                        Grid.SetColumn(tb, c);
+                                        Grid.SetRow(tb, r);
+                                        Grid.SetColumnSpan(tb, cs);
+                                        Grid.SetRowSpan(tb, rs);
+
+                                        currentGrid.Children.Add(tb);
+                                    }
+                                    break;
+                                case "canvas":
+                                    {
+                                        if (currentCanvas == null)
+                                            break;
+
+                                        double x = 0, y = 0;
+                                        if (double.TryParse(command.X, out x) == false ||
+                                            double.TryParse(command.Y, out y) == false)
+                                            break;
+
+                                        Canvas.SetLeft(tb, x);
+                                        Canvas.SetTop(tb, y);
+
+                                        currentCanvas.Children.Add(tb);
+                                        
+                                    }
+                                    break;
+                            }
                         }
                         break;
 
