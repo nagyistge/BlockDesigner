@@ -292,7 +292,8 @@ namespace BlockDesigner
                                             StrokeStartLineCap = PenLineCap.Square,
                                             StrokeEndLineCap = PenLineCap.Square,
                                             StrokeLineJoin = PenLineJoin.Miter,
-                                            Stroke = Brushes.Red
+                                            Stroke = Brushes.Red,
+                                            Fill = Brushes.Red
                                         };
 
                                         RenderOptions.SetEdgeMode(path, EdgeMode.Aliased);
@@ -327,21 +328,25 @@ namespace BlockDesigner
                     #region Line
 
                     // Add new line to current path
-                    // line <x1> <y1> <x2> <y2>
+                    // line <x1,y1> <x2,y2> [<x3,y3> ... <xn,yn>] [close]
                     case "line":
                         {
                             if (currentPath == null || linesStringBuilder == null)
                                 break;
 
-                            double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
-                            if (double.TryParse(command.X1, out x1) &&
-                                double.TryParse(command.Y1, out y1) &&
-                                double.TryParse(command.X2, out x2) &&
-                                double.TryParse(command.Y2, out y2))
+                            linesStringBuilder.AppendFormat("M{0}", command.Start);
+                            linesStringBuilder.AppendFormat("L{0}", command.End);
+
+                            if (command.Points.Length > 0)
                             {
-                                linesStringBuilder.AppendFormat("M{0},{1}", x1, y1);
-                                linesStringBuilder.AppendFormat("L{0},{1}\n", x2, y2);
+                                foreach(var point in command.Points)
+                                    linesStringBuilder.AppendFormat(" {0}", point);
                             }
+
+                            if (command.IsClosed)
+                                linesStringBuilder.AppendFormat(" Z\n");
+                            else
+                                linesStringBuilder.AppendFormat("\n");
                         }
                         break;
 
