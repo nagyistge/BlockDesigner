@@ -26,4 +26,7 @@ block begin OrGate 30 30
         text 0 0 1 1 center center Arial 14 false ≥1
     grid end
 
+    // name
+    //text 30 30 bottom right Arial 10 false og1
+
 block end

@@ -142,4 +142,7 @@ block begin TwoWayMotor 480 120
         text 7 13 1 1 center center Arial 9 false BE
     grid end
 
+    // name
+    //text 480 120 bottom right Arial 10 false twmb1
+
 block end

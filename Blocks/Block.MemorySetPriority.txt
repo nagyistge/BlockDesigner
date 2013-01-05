@@ -35,4 +35,7 @@ block begin MemorySetPriority 60 30
         text 0 1 1 1 center center Arial 14 false R
     grid end
 
+    // name
+    //text 60 30 bottom right Arial 10 false ms1
+
 block end

@@ -132,4 +132,7 @@ block begin OneWayMotor 480 120
         text 7 13 1 1 center center Arial 9 false BE
     grid end
 
+    // name
+    //text 480 120 bottom right Arial 10 false owmb1
+
 block end
