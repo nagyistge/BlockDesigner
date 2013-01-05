@@ -40,6 +40,8 @@ namespace BlockDesigner
             }
         }
 
+        private static char[] SplitChar = { ' ', '\t' };
+
         public static List<string[]> LoadLines(string fileName)
         {
             var lines = new List<string[]>();
@@ -49,8 +51,7 @@ namespace BlockDesigner
                 string line;
                 while ((line = stream.ReadLine()) != null)
                 {
-                    char[] splitchar = { ' ' };
-                    lines.Add(line.Split(splitchar, StringSplitOptions.RemoveEmptyEntries));
+                    lines.Add(line.Split(SplitChar, StringSplitOptions.RemoveEmptyEntries));
                 }
             }
 
@@ -66,8 +67,7 @@ namespace BlockDesigner
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    char[] splitchar = { ' ' };
-                    lines.Add(line.Split(splitchar, StringSplitOptions.RemoveEmptyEntries));
+                    lines.Add(line.Split(SplitChar, StringSplitOptions.RemoveEmptyEntries));
                 }
             }
 
@@ -149,18 +149,38 @@ namespace BlockDesigner
                             }
                         }
                         break;
-                    // line <x1> <y1> <x2> <y2>
+                    // line <x1,y1> <x2,y2> [<x3,y3> ... <xn,yn>] [close]
                     case "line":
                         {
-                            if (l.Length == 5)
+                            if (l.Length >= 3)
                             {
                                 dynamic command = new ExpandoObject();
                                 command.Version = "1.0";
                                 command.Command = l[0];
-                                command.X1 = l[1];
-                                command.Y1 = l[2];
-                                command.X2 = l[3];
-                                command.Y2 = l[4];
+                                command.Start = l[1];
+                                command.End = l[2];
+
+                                var last = l.Last();
+                                bool isClosed = string.Compare(last, "close", StringComparison.OrdinalIgnoreCase) == 0;
+
+                                if (l.Length > 4)
+                                {
+                                    var pointsLength = isClosed ? l.Length - 4 : l.Length - 3;
+
+                                    var points = new string[pointsLength];
+
+                                    for (int i = 0; i < pointsLength; i++)
+                                        points[i] = l[i + 3];
+
+                                    command.Points = points;
+                                }
+                                else
+                                {
+                                    command.Points = new string[0];
+                                }
+
+                                command.IsClosed = isClosed;
+
                                 commands.Add(command);
                             }
                         }
