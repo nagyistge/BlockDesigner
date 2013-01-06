@@ -35,30 +35,6 @@ namespace BlockDesigner
 
         #endregion
 
-        #region Events
-
-        private void ButtonLoadCodeFromFile_Click(object sender, RoutedEventArgs e)
-        {
-            LoadCodeFromFile();
-        }
-
-        private void ButtonSaveCodeToFile_Click(object sender, RoutedEventArgs e)
-        {
-            SaveCodeToFile();
-        }
-
-        private void ButtonCompileCode_Click(object sender, RoutedEventArgs e)
-        {
-            CompileUserCode();
-        }
-
-        private void ButtonExportXaml_Click(object sender, RoutedEventArgs e)
-        {
-            ExportXamlToFile();
-        }
-
-        #endregion
-
         #region Load Code
 
         private void LoadCodeFromFile()
@@ -122,6 +98,23 @@ namespace BlockDesigner
             var lines = Parser.SplitText(codeText);
             var commands = Parser.ParseLines(lines);
 
+            // commands compiler output
+            var output = new StringBuilder();
+
+            output.AppendLine("Count: " + commands.Count().ToString());
+            foreach (var c in commands)
+            {
+                output.AppendLine("");
+                output.AppendLine("[Command]");
+
+                foreach (var property in (IDictionary<String, Object>)c)
+                {
+                    output.AppendLine(property.Key + ": " + property.Value);
+                }
+            }
+
+            TextOutput.Text = output.ToString();
+
             // reset canvas
             CanvasDesignArea.Children.Clear();
 
@@ -168,8 +161,14 @@ namespace BlockDesigner
                     Canvas.SetTop(t, y);
                 };
 
-                Canvas.SetLeft(thumb, offset);
-                Canvas.SetTop(thumb, nextBlockOffset);
+                //Canvas.SetLeft(thumb, offset);
+                //Canvas.SetTop(thumb, nextBlockOffset);
+
+                double blockWidth = (tuple.Item2 as Canvas).Width;
+                double blockHeight = (tuple.Item2 as Canvas).Height;
+
+                Canvas.SetLeft(thumb, CanvasDesignArea.ActualWidth / 2.0 - blockWidth / 2.0);
+                Canvas.SetTop(thumb, CanvasDesignArea.ActualHeight / 2.0 - blockHeight / 2.0);
 
                 CanvasDesignArea.Children.Add(thumb);
 
@@ -313,7 +312,20 @@ namespace BlockDesigner
                                             break;
 
                                         string pathData = linesStringBuilder.ToString();
-                                        currentPath.Data = Geometry.Parse(pathData);
+                                        Geometry geometry = null;
+
+                                        try
+                                        {
+                                            geometry = Geometry.Parse(pathData);
+
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            System.Diagnostics.Debug.Print(ex.Message);
+                                        }
+
+                                        if (geometry != null)
+                                            currentPath.Data = geometry;
 
                                         currentPath = null;
                                         linesStringBuilder = null;
@@ -443,12 +455,39 @@ namespace BlockDesigner
                                 break;
 
                             double height;
-                            if (double.TryParse(command.Height, out height))
+                            if (double.TryParse(command.Height, out height) && height > 0)
                             {
                                 currentGrid.RowDefinitions.Add(new RowDefinition()
                                 {
                                     Height = new GridLength(height)
                                 });
+                            }
+                        }
+                        break;
+
+                    #endregion
+
+                    #region Rows
+
+                    // rows <count> <height>
+                    case "rows":
+                        {
+                            if (currentGrid == null)
+                                break;
+
+                            double height;
+                            int count = 0;
+                            if (double.TryParse(command.Height, out height) &&
+                                int.TryParse(command.Count, out count) &&
+                                height > 0 && count > 0)
+                            {
+                                for (int i = 0; i < count; i++)
+                                {
+                                    currentGrid.RowDefinitions.Add(new RowDefinition()
+                                    {
+                                        Height = new GridLength(height)
+                                    });
+                                }
                             }
                         }
                         break;
@@ -464,12 +503,42 @@ namespace BlockDesigner
                                 break;
 
                             double width;
-                            if (double.TryParse(command.Width, out width))
+                            if (double.TryParse(command.Width, out width) && width > 0)
                             {
                                 currentGrid.ColumnDefinitions.Add(new ColumnDefinition
                                 {
                                     Width = new GridLength(width)
                                 });
+                            }
+                        }
+                        break;
+
+                    #endregion
+
+                    #region Columns
+
+                    // columns <count> <width>
+                    case "columns":
+                        {
+                            if (currentGrid == null)
+                                break;
+
+                            if (currentGrid == null)
+                                break;
+
+                            double width;
+                            int count = 0;
+                            if (double.TryParse(command.Width, out width) &&
+                                int.TryParse(command.Count, out count) &&
+                                width > 0 && count > 0)
+                            {
+                                for (int i = 0; i < count; i++)
+                                {
+                                    currentGrid.ColumnDefinitions.Add(new ColumnDefinition
+                                    {
+                                        Width = new GridLength(width)
+                                    });
+                                }
                             }
                         }
                         break;
@@ -744,6 +813,35 @@ namespace BlockDesigner
             }
 
             return sb.ToString();
+        }
+
+        #endregion
+
+        #region Events
+
+        private void MenuFileOpen_Click(object sender, RoutedEventArgs e)
+        {
+            LoadCodeFromFile();
+        }
+
+        private void MenuFileClose_Click(object sender, RoutedEventArgs e)
+        {
+            SaveCodeToFile();
+        }
+
+        private void MenuFileExport_Click(object sender, RoutedEventArgs e)
+        {
+            ExportXamlToFile();
+        }
+
+        private void MenuScriptCompile_Click(object sender, RoutedEventArgs e)
+        {
+            CompileUserCode();
+        }
+
+        private void MenuFileExit_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
 
         #endregion
