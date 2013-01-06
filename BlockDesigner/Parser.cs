@@ -239,6 +239,20 @@ namespace BlockDesigner
                             }
                         }
                         break;
+                    // rows <count> <height>
+                    case "rows":
+                        {
+                            if (l.Length == 3)
+                            {
+                                dynamic command = new ExpandoObject();
+                                command.Version = "1.0";
+                                command.Command = l[0];
+                                command.Count = l[1];
+                                command.Height = l[2];
+                                commands.Add(command);
+                            }
+                        }
+                        break;
                     // column <width>
                     case "column":
                         {
@@ -248,6 +262,20 @@ namespace BlockDesigner
                                 command.Version = "1.0";
                                 command.Command = l[0];
                                 command.Width = l[1];
+                                commands.Add(command);
+                            }
+                        }
+                        break;
+                    // columns <count> <width>
+                    case "columns":
+                        {
+                            if (l.Length == 3)
+                            {
+                                dynamic command = new ExpandoObject();
+                                command.Version = "1.0";
+                                command.Command = l[0];
+                                command.Count = l[1];
+                                command.Width = l[2];
                                 commands.Add(command);
                             }
                         }
