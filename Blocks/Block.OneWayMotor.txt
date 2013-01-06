@@ -68,30 +68,8 @@ block begin OneWayMotor 480 120
     pin BE 405 120
 
     grid begin 0 0 480 120
-        row 15
-        row 15
-        row 15
-        row 15
-        row 15
-        row 15
-        row 15
-        row 15
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
+        rows 8 15
+        columns 16 30
         // text - inputs off
         text 0 1 1 1 center center Arial 9 false SA
         text 1 1 1 1 center center Arial 9 false YB32

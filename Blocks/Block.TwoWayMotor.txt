@@ -68,30 +68,8 @@ block begin TwoWayMotor 480 120
     pin BE 405 120
 
     grid begin 0 0 480 120
-        row 15
-        row 15
-        row 15
-        row 15
-        row 15
-        row 15
-        row 15
-        row 15
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
-        column 30
+        rows 8 15
+        columns 16 30
         // text - inputs left
         text 0 1 1 1 center center Arial 9 false SA
         text 1 1 1 1 center center Arial 9 false YB32
@@ -108,8 +86,8 @@ block begin TwoWayMotor 480 120
         text 1 7 1 1 center center Arial 9 false YB44
         text 0 8 1 1 center center Arial 9 false AS
         text 1 8 1 1 center center Arial 9 false YB23
-        text 0 8 1 1 center center Arial 9 false HS
-        text 1 8 1 1 center center Arial 9 false YB13
+        text 0 9 1 1 center center Arial 9 false HS
+        text 1 9 1 1 center center Arial 9 false YB13
         // text - inputs right
         text 0 11 1 1 center center Arial 9 false AE
         text 1 11 1 1 center center Arial 9 false YB21
