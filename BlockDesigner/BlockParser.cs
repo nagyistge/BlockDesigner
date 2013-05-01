@@ -12,9 +12,9 @@ namespace BlockDesigner
 
     #endregion
 
-    #region Parser
+    #region BlockParser
 
-    public class Parser
+    public class BlockParser
     {
         public static string LoadText(string fileName)
         {
